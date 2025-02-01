@@ -1,4 +1,5 @@
 const socket = io();
+import { getformatedTime } from "../utils/formateTime.js";
 
 const shareLocationButton = document.getElementById("shareLocation");
 const form = document.querySelector("form");
@@ -53,18 +54,28 @@ form.addEventListener("submit", (e) => {
 socket.on("welcome", (message) => {
   console.log("got welcome ", message.text);
   const { text } = message;
-  const html = Mustache.render(messageTemplate, { message: text });
+  const html = Mustache.render(messageTemplate, {
+    message: text,
+    createdAt: getformatedTime(),
+  });
   messages.insertAdjacentHTML("beforeend", html);
 });
 //check for message event
 socket.on("message", (message) => {
   console.log("got message ", message.text);
   const { text } = message;
-  const html = Mustache.render(messageTemplate, { message: text });
+  const html = Mustache.render(messageTemplate, {
+    message: text,
+    createdAt: getformatedTime(message.createdAt),
+  });
   messages.insertAdjacentHTML("beforeend", html);
 });
 socket.on("locationMessage", (message) => {
-  const html = Mustache.render(locationTemplate, { message });
-  console.log(html);
+  console.log(message);
+  const { text } = message;
+  const html = Mustache.render(locationTemplate, {
+    message: text,
+    createdAt: getformatedTime(message.createdAt),
+  });
   messages.insertAdjacentHTML("beforeend", html);
 });

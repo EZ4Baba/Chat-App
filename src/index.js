@@ -2,7 +2,10 @@ const http = require("http");
 const path = require("path");
 const express = require("express");
 const socketio = require("socket.io");
-const { generateMessage } = require("./utils/messages");
+const {
+  generateMessage,
+  generateLocationMessage,
+} = require("./utils/messages");
 //dynamic import to ES6
 let MyFilter = undefined;
 (async () => {
@@ -41,10 +44,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("locationMessage", (position, ackCallback) => {
-    io.emit(
-      "locationMessage",
-      `https://www.google.com/maps?q=${position.latitude},${position.longitude}`
-    );
+    io.emit("locationMessage", generateLocationMessage(position));
     ackCallback();
   });
 });
