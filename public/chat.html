@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.1/mustache.min.js"></script>
+    <link href="./css/styles.css" rel="stylesheet" />
+    <link rel="icon" href="/img/favicon.png" />
+  </head>
+  <body>
+    <div class="chat">
+      <div class="chat__sidebar"></div>
+      <div class="chat__main">
+        <div id="messages" class="chat__messages"></div>
+        <div class="compose">
+          <form>
+            <label for="message"></label>
+            <input
+              type="text"
+              id="message"
+              placeholder="Message"
+              name="message"
+            />
+            <button id="form-button">Send</button>
+          </form>
+          <button id="shareLocation">Share Location</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 
+        The embedded content is treated as a data block, and won't be processed by the browser. 
+        type="text/html" ensures the browser does not execute the content as JavaScript but treats it as plain text. You can use this to define templates that can later be dynamically rendered or inserted into the DOM using JavaScript.
+        it's convenient to keep a template in the HTML file. Instead of hardcoding HTML strings in JavaScript, you define a reusable structure, which can be fetched and populated with data using libraries like Handlebars, Mustache, or plain JavaScript.
+        we will render this template in #messages div
+     -->
+    <script id="location-template" type="text/html">
+      <div class="message">
+        <p>
+          <span class="message__name">Username</span>
+          <span class="message__meta">{{createdAt}}</span>
+        </p>
+        <p>
+          <a href="{{message}}" target="_blank">My Current Location</a>
+        </p>
+      </div>
+    </script>
+    <script id="message-template" type="text/html">
+      <div class="message">
+        <p>
+          <span class="message__name">Username</span>
+          <span class="message__meta">{{createdAt}}</span>
+        </p>
+        <p>{{{message}}}</p>
+      </div>
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+    <!-- Socket.IO automatically serves its client-side library from that path when it is initialized on the server -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/chat.js" type="module"></script>
+  </body>
+</html>
