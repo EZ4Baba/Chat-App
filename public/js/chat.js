@@ -1,5 +1,6 @@
 const socket = io();
 import { getformatedTime } from "../utils/formateTime.js";
+import { getUsernameAndRoom } from "../utils/params.js";
 
 const shareLocationButton = document.getElementById("shareLocation");
 const form = document.querySelector("form");
@@ -8,6 +9,7 @@ const frombutton = document.getElementById("form-button");
 const messages = document.querySelector("#messages");
 const messageTemplate = document.getElementById("message-template").innerHTML;
 const locationTemplate = document.getElementById("location-template").innerHTML;
+
 //get client location
 
 shareLocationButton.addEventListener("click", async () => {
@@ -60,6 +62,7 @@ socket.on("welcome", (message) => {
   });
   messages.insertAdjacentHTML("beforeend", html);
 });
+
 //check for message event
 socket.on("message", (message) => {
   console.log("got message ", message.text);
@@ -70,6 +73,8 @@ socket.on("message", (message) => {
   });
   messages.insertAdjacentHTML("beforeend", html);
 });
+
+// on location pings
 socket.on("locationMessage", (message) => {
   console.log(message);
   const { text } = message;
@@ -78,4 +83,9 @@ socket.on("locationMessage", (message) => {
     createdAt: getformatedTime(message.createdAt),
   });
   messages.insertAdjacentHTML("beforeend", html);
+});
+
+socket.emit("join", getUsernameAndRoom(), (error) => {
+  // if any errors
+  console.log("error in join", error);
 });

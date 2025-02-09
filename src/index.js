@@ -24,9 +24,21 @@ const publicDirectoryPath = path.join(__dirname, "../public");
 app.use(express.static(publicDirectoryPath));
 
 io.on("connection", (socket) => {
-  // to other users
-  socket.broadcast.emit("message", generateMessage("New user joined"));
-  socket.emit("welcome", generateMessage("Hi there...Welcome to our chat app"));
+  //on join
+  socket.on("join", ({ username, room }) => {
+    socket.join(room); //let socket join the room
+
+    socket.emit(
+      "welcome", //send welcome message to socket
+      generateMessage("Hi there...Welcome to our chat app")
+    );
+
+    socket.broadcast
+      .to(room) //let other know username has joined
+      .emit("message", generateMessage(`${username} has joined`));
+  });
+
+  //on message
   socket.on("message", (message, acknowlegmentcallback) => {
     const filter = new MyFilter();
     if (filter.isProfane(message)) {
@@ -38,11 +50,13 @@ io.on("connection", (socket) => {
     acknowlegmentcallback();
   });
 
+  //on disconnect
   socket.on("disconnect", () => {
     //we dont need to exclude with socket.broadcast as socket has already left
     io.emit("message", generateMessage("user left"));
   });
 
+  //on location share
   socket.on("locationMessage", (position, ackCallback) => {
     io.emit("locationMessage", generateLocationMessage(position));
     ackCallback();
