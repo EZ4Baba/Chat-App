@@ -6,6 +6,12 @@ const {
   generateMessage,
   generateLocationMessage,
 } = require("./utils/messages");
+const {
+  addUser,
+  removeUser,
+  getUser,
+  getUsersInRoom,
+} = require("./utils/users");
 //dynamic import to ES6
 let MyFilter = undefined;
 (async () => {
@@ -24,21 +30,27 @@ const publicDirectoryPath = path.join(__dirname, "../public");
 app.use(express.static(publicDirectoryPath));
 
 io.on("connection", (socket) => {
-  //on join
-  socket.on("join", ({ username, room }) => {
-    socket.join(room); //let socket join the room
-
+  //JOIN
+  socket.on("join", ({ username, room }, callback) => {
+    const { error, user } = addUser({ id: socket.id, username, room });
+    if (error) {
+      return callback(error);
+    }
+    socket.join(user.room); //let socket join the room
     socket.emit(
-      "welcome", //send welcome message to socket
+      "welcome",
       generateMessage("Hi there...Welcome to our chat app")
     );
 
     socket.broadcast
-      .to(room) //let other know username has joined
+      .to(user.room) //let other know username has joined
       .emit("message", generateMessage(`${username} has joined`));
+
+    // success callback on client side
+    callback();
   });
 
-  //on message
+  //MESSAGE
   socket.on("message", (message, acknowlegmentcallback) => {
     const filter = new MyFilter();
     if (filter.isProfane(message)) {
@@ -50,13 +62,20 @@ io.on("connection", (socket) => {
     acknowlegmentcallback();
   });
 
-  //on disconnect
+  //DISCONNECT
   socket.on("disconnect", () => {
-    //we dont need to exclude with socket.broadcast as socket has already left
-    io.emit("message", generateMessage("user left"));
+    const user = removeUser(socket.id);
+    if (user) {
+      //no need to exclude indevisual socket with socket.broadcast as socket has already left
+      io.to(user.room).emit(
+        "message",
+        generateMessage(`${user.username} has left`)
+      );
+    }
+    return;
   });
 
-  //on location share
+  //LOCATION
   socket.on("locationMessage", (position, ackCallback) => {
     io.emit("locationMessage", generateLocationMessage(position));
     ackCallback();
@@ -72,8 +91,8 @@ server.listen(port, () => {
 io.emit - sends to everyone(including the sender)
 socket.emit - sends event to socket(sender)
 socket.broadcast.emit - sends event to all other sockets except the one that sent the event
-socket.on("eventname") - listen for event
-socket.on("disconnect") - listen for socket disconnection
+socket.on("eventname") - listen for events
+socket.to("room-name").emit - sends event to a specific room
 
 WHY WE NEED HTTP SERVER
 
